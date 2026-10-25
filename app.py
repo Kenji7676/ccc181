@@ -8,8 +8,28 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# Sample data for the demo. A real app would load this from a database later.
-TICKETS = [12, 13, 14]
+SERVICES = [
+    {"id": 1, "name": "Buy merch"},
+    {"id": 2, "name": "Claim pre-order"},
+    {"id": 3, "name": "Payment / inquiry"},
+]
+
+SIZES = ["XS", "S", "M", "L", "XL", "2XL"]
+
+TICKETS = [
+    {"number": 1, "name": "Francis Geronimo",
+     "email": "francis.geronimo@g.msuiit.edu.ph",
+     "service_id": 1, "status": "waiting",
+     "item": "Langkit T-shirt", "size": "M", "quantity": 2},
+    {"number": 2, "name": "Cris Pondoyo",
+     "email": "cris.pondoyo@g.msuiit.edu.ph",
+     "service_id": 2, "status": "waiting",
+     "item": "Langkit hoodie", "size": "L", "quantity": 1},
+    {"number": 3, "name": "Michael Adeva",
+     "email": "michael.adeva@g.msuiit.edu.ph",
+     "service_id": 1, "status": "called",
+     "item": "Langkit tote bag", "size": "N/A", "quantity": 1},
+]
 
 
 @app.route("/")
