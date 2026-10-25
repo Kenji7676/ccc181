@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Photo or sketch** | ![Persona 1](persona1.png) |
-| **Age, role and background** | 20, 3rd year Civil Engineering student, hectic class schedule with frequent exams |
+| **Age, role and background** | 20, 3rd year BS Civil Engineering student, hectic class schedule with frequent exams |
 | **Goals** | <ol><li>He wants to be able to roam around the Langkit store and view merch items without fear that if he takes too long to find what he wants to order, the line to pay would get longer.</li><li>He wants to be notified when it is his turn to pay at the counter.</li></ol> |
 | **Frustrations** | <ol><li>The COE building is considerably far from the Langkit Merch Shop, so he finds it tiring to go knowing that the store would get crowded.</li><li>He is often bombarded with exams, so he can't stay in the line to pay for long since it sometimes conflicts with his class or exam schedules.</li><li>Around September, when freshmen are required to buy PE uniforms, Langkit becomes almost inaccessible to other customers.</li></ol> |
 | **Devices and context** | Uses a laptop for CAD activities and also has a smartphone often used for social media and gaming |
