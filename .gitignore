@@ -1,0 +1,16 @@
+# Virtual environment (rebuild it with: pip install -r requirements.txt)
+.venv/
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Secrets such as API keys
+.env
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

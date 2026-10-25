@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket_id }} · ClinicQ{% endblock %}
+
+{% block content %}
+  <h2>Ticket #{{ ticket_id }}</h2>
+  <p>This page was built from the URL <code>/queue/{{ ticket_id }}</code>.</p>
+  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+{% endblock %}
