@@ -19,7 +19,7 @@
   <td>{{ names[t.service_id] }}</td>
   <td>
     <span class="pill">
-      {% if t.status == 'called' %}Called{% elif t.stage == 'paying' %}Ready{% else %}Browsing{% endif %}
+        {% if t.status == 'called' %}Called{% elif t.stage == 'paying' %}Ready{% elif t.stage == 'browsing' %}Browsing{% else %}Waiting{% endif %}
     </span>
   </td>
   <td class="text-nowrap">
@@ -139,8 +139,8 @@
                 {% for t in paying %}{{ row(t, t == next_ticket) }}{% endfor %}
               {% endif %}
               {% if browsing %}
-                <tr class="group-row"><td colspan="5">Browsing</td></tr>
-                {% for t in browsing %}{{ row(t, t == next_ticket, True) }}{% endfor %}
+                   <tr class="group-row"><td colspan="5">Waiting</td></tr>
+                  {% for t in browsing %}{{ row(t, t == next_ticket, t.stage == 'browsing') }}{% endfor %}
               {% endif %}
             {% else %}
               <tr class="empty-row">

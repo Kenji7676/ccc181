@@ -15,8 +15,8 @@ app = Flask(__name__)
 app.secret_key = "dev-only-change-me"
 
 SERVICES = [
-    {"id": 1, "name": "Buy merch"},
-    {"id": 2, "name": "Claim pre-order"},
+    {"id": 1, "name": "Buy merch", "uses_stage": True},
+    {"id": 2, "name": "Claim pre-order", "uses_stage": False},
 ]
 
 TICKETS = []
@@ -100,9 +100,17 @@ def queue_summary():
     }
 
 
+def join_page(form, errors, code=200):
+    picked = next((s for s in SERVICES if str(s["id"]) == form.get("service_id", "")), None)
+    show_stage = bool(picked and picked.get("uses_stage"))
+    return render_template("join.html", form=form, errors=errors,
+                           summary=queue_summary(), services=SERVICES,
+                           show_stage=show_stage), code
+
+
 @app.get("/join")
 def join_form():
-    return render_template("join.html", form={}, errors={}, summary=queue_summary())
+    return join_page({}, {})
 
 
 @app.post("/join")
@@ -110,32 +118,39 @@ def join():
     form = request.form
     name = form.get("name", "").strip()
     student_id = form.get("student_id", "").strip()
-    stage = form.get("stage", "")
+    service_id = form.get("service_id", type=int)
+    service = next((s for s in SERVICES if s["id"] == service_id), None)
     errors = {}
 
     if not name:
-        errors["name"] = "Enter your name"
+        errors["name"] = "Enter your full name."
     elif len(name) > 80:
         errors["name"] = "Name must be 80 characters or fewer."
 
     if not STUDENT_ID_RE.match(student_id):
-        errors["student_id"] = "Invalid format: YYYY-NNNN"
+        errors["student_id"] = "Enter your student ID like 2024-0001."
 
-    if stage not in STAGES:
-        errors["stage"] = "Choose one option."
+    if service is None:
+        errors["service_id"] = "Choose a service."
+
+    # The browsing / ready-to-pay question only applies to services that use it
+    stage = None
+    if service and service.get("uses_stage"):
+        stage = form.get("stage", "")
+        if stage not in STAGES:
+            errors["stage"] = "Choose one option."
 
     if errors:
         flash("Please fix the highlighted fields.", "danger")
-        return render_template("join.html", form=form, errors=errors,
-                               summary=queue_summary()), 400
+        return join_page(form, errors, 400)
 
     number = max((t["number"] for t in TICKETS), default=0) + 1
     TICKETS.append({
         "number": number,
         "name": name,
         "student_id": student_id,
-        "stage": stage,
-        "service_id": SERVICES[0]["id"],  # wireframe has no service picker, so use a default
+        "stage": stage,              # None for Claim pre-order
+        "service_id": service["id"],
         "status": "waiting",
     })
     flash(f"You're in the queue! Your ticket number is #{number}.", "success")

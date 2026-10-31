@@ -18,7 +18,7 @@
       <div class="d-flex justify-content-between align-items-start gap-2">
         <p class="ticket-label">Ticket number</p>
         <p class="status-box badge status-{{ ticket.status }} mb-0">
-          Status · <span id="status-badge">{{ ticket.status }}</span>{% if active %} · {{ stage }}{% endif %}
+          Status · <span id="status-badge">{{ ticket.status }}</span>{% if active and stage %} · {{ stage }}{% endif %}
         </p>
       </div>
 

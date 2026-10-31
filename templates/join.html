@@ -45,13 +45,34 @@
         {% endif %}
       </div>
 
-      <fieldset class="mb-4">
+      <fieldset class="mb-3">
+        <legend class="form-label fs-6 fw-semibold">Service</legend>
+        <div class="row g-2">
+          {% for s in services %}
+            <div class="col-12 col-md-6">
+              <div class="choice">
+                <input class="choice-input" type="radio" name="service_id" id="service-{{ s.id }}"
+                      value="{{ s.id }}" data-stage="{{ 1 if s.uses_stage else 0 }}"
+                      {% if form.get('service_id') == s.id|string %}checked{% endif %}>
+                <label class="choice-label" for="service-{{ s.id }}">
+                  <span class="choice-title">{{ s.name }}</span>
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% if errors and errors.service_id %}
+          <div class="text-danger small mt-2">{{ errors.service_id }}</div>
+        {% endif %}
+      </fieldset>
+
+      <fieldset class="mb-4" id="stage-fieldset" {% if not show_stage %}hidden{% endif %}>
         <legend class="form-label fs-6 fw-semibold">Still choosing items, or ready to pay?</legend>
         <div class="row g-2">
           <div class="col-12 col-md-6">
             <div class="choice">
               <input class="choice-input" type="radio" name="stage" id="stage-browsing"
-                     value="browsing" {% if form.get('stage', 'browsing') == 'browsing' %}checked{% endif %}>
+                    value="browsing" {% if form.get('stage', 'browsing') == 'browsing' %}checked{% endif %}>
               <label class="choice-label" for="stage-browsing">
                 <span class="choice-title">Still browsing</span>
               </label>
@@ -60,7 +81,7 @@
           <div class="col-12 col-md-6">
             <div class="choice">
               <input class="choice-input" type="radio" name="stage" id="stage-paying"
-                     value="paying" {% if form.get('stage') == 'paying' %}checked{% endif %}>
+                    value="paying" {% if form.get('stage') == 'paying' %}checked{% endif %}>
               <label class="choice-label" for="stage-paying">
                 <span class="choice-title">Ready to pay</span>
                 <span class="choice-help">Paying customers are called first</span>
@@ -80,4 +101,22 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const stageBox = document.getElementById("stage-fieldset");
+
+  function syncStage() {
+    const picked = document.querySelector('input[name="service_id"]:checked');
+    const show = !!picked && picked.dataset.stage === "1";
+    stageBox.hidden = !show;
+    // Disabled inputs aren't submitted, so a hidden answer can't sneak through
+    stageBox.querySelectorAll("input").forEach(i => { i.disabled = !show; });
+  }
+
+  document.querySelectorAll('input[name="service_id"]')
+    .forEach(r => r.addEventListener("change", syncStage));
+  syncStage();
+</script>
 {% endblock %}

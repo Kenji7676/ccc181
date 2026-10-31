@@ -19,8 +19,8 @@
 | --- | --- | --- | --- |
 | Every input has a visible label |✅| N/A |✅|
 | Error messages say what to do, in text |✅| N/A | N/A |
-| Status is shown in words, not only color |✅|✅|❌ (Fix: The next ticket to be called was marked only by a highlighted row. I added a “Next” text tag beside its ticket number, so the status is clear without relying on colour.)|
+| Status is shown in words, not only color |✅|✅|❌ (Fix: The next ticket to be called was marked only by a highlighted row. I added a “Next” text tag beside its ticket number, so the status is clear without relying on colour)|
 | Text and buttons are readable at 375 px with no sideways page scroll |✅|✅|✅|
-| Buttons are at least about 44 × 44 px on a phone |✅|✅|❌ (Fix: The Call, Serve and No-show buttons, plus the Filter button and Service select, were about 31 to 38 px tall. I set a 44 px minimum height and width on screens under 768 px so they are easy to tap.)|
+| Buttons are at least about 44 × 44 px on a phone |✅|✅|❌ (Fix: The Call, Serve and No-show buttons, plus the Filter button and Service select, were about 31 to 38 px tall. I set a 44 px minimum height and width on screens under 768 px so they are easy to tap)|
 | Page has one `<h1>` and headings in order |✅|✅|✅|
 | `<html lang="en">` (or your language) is set |✅|✅|✅|
