@@ -85,16 +85,24 @@
   </div>
 </div>
 {% endif %}
+
+<div id="ticket-data" hidden
+     data-status-url="{{ url_for('ticket_status', ticket_id=ticket.number) }}"
+     data-status="{{ ticket.status }}"
+     data-stage="{{ stage or '' }}"
+     data-ahead="{{ ahead }}"></div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const info = document.getElementById("ticket-data").dataset;
+  const statusUrl = info.statusUrl;
   const shown = {
-    status: {{ ticket.status|tojson }},
-    stage: {{ ticket.get('stage', 'browsing')|tojson }},
-    ahead: {{ ahead|tojson }}
+    status: info.status,
+    stage: info.stage || null,
+    ahead: Number(info.ahead)
   };
+
   let timer = null;
 
   async function refreshStatus() {
