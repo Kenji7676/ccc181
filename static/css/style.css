@@ -325,14 +325,6 @@ body {
 }
 .muted .pill { border-color: #8a7b7b; color: #6b5d5d; }
 
-.empty-state {
-  border: 2px dashed var(--lk-maroon);
-  border-radius: 0.375rem;
-  background: #fff;
-  padding: 2rem 1rem;
-  text-align: center;
-}
-
 .callbar {
   position: fixed;
   left: 0;
@@ -346,4 +338,15 @@ body {
 
 @media (min-width: 768px) {
   .staff-wrap { padding-bottom: 0; }
+}
+
+.queue-table .empty-row td {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: #fff;
+}
+.empty-icon {
+  display: block;
+  margin: 0 auto 0.75rem;
+  color: var(--lk-maroon);
 }

@@ -38,13 +38,13 @@
 
 <div class="staff-wrap">
   <h1 class="display-6 fw-bold mb-1">Queue dashboard</h1>
-  <p class="text-body-secondary mb-3 d-md-none">Updated just now</p>
+  <p class="text-body-secondary mb-3 d-md-none" data-updated>Updated just now</p>
 
   <div class="row gx-md-4 gy-4 mt-1">
 
     {# ===== Left: call next + current ticket ===== #}
     <div class="col-12 col-md-5 col-lg-4">
-      <section class="dash-panel" aria-label="Current ticket">
+      <section class="dash-panel" aria-label="Current ticket" data-live="panel">
 
         <form method="post" action="{{ url_for('call_next') }}" class="d-none d-md-grid mb-3">
           <input type="hidden" name="service_id" value="{{ selected or '' }}">
@@ -53,8 +53,8 @@
           </button>
         </form>
 
-        <p class="dash-label">Current ticket</p>
         {% if current %}
+          <p class="dash-label">Current ticket</p>
           <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
             <p class="current-number">{{ current_code }}</p>
             <div>
@@ -75,7 +75,15 @@
             </form>
           </div>
         {% else %}
-          <p class="mb-0">No ticket called yet. Press <strong>Call next</strong> to start.</p>
+          <div class="idle">
+            <p class="idle-text mb-0">
+              {% if next_ticket %}
+                Press <strong>Call next</strong> to call {{ next_code }}.
+              {% else %}
+                When someone joins, press <strong>Call next</strong> to start serving.
+              {% endif %}
+            </p>
+          </div>
         {% endif %}
       </section>
     </div>
@@ -88,8 +96,8 @@
           <h2 class="h4 fw-bold mb-0">Waiting customers</h2>
         </div>
         <p class="mb-0 text-md-end small">
-          <strong class="text-uppercase">{{ total }} total · {{ paying|length }} ready</strong>
-          <span class="d-none d-md-block">Updated just now</span>
+          <<strong class="text-uppercase" data-live="counts">{{ total }} total · {{ paying|length }} ready</strong>
+          <span class="d-none d-md-block" data-updated>Updated just now</span>
         </p>
       </div>
 
@@ -109,7 +117,7 @@
       </form>
 
       {% if called or paying or browsing %}
-      <div class="table-responsive queue-box">
+      <div class="table-responsive queue-box" data-live="table">
         <table class="table queue-table align-middle mb-0">
           <caption class="visually-hidden">Called and waiting tickets in queue order, customers ready to pay first</caption>
           <thead>
@@ -122,32 +130,47 @@
             </tr>
           </thead>
           <tbody>
-            {% if called %}
-              <tr class="group-row"><td colspan="5">Called</td></tr>
-              {% for t in called %}{{ row(t) }}{% endfor %}
-            {% endif %}
-            {% if paying %}
-              <tr class="group-row"><td colspan="5">Ready to pay</td></tr>
-              {% for t in paying %}{{ row(t, t == next_ticket) }}{% endfor %}
-            {% endif %}
-            {% if browsing %}
-              <tr class="group-row"><td colspan="5">Browsing</td></tr>
-              {% for t in browsing %}{{ row(t, t == next_ticket, True) }}{% endfor %}
+            {% if called or paying or browsing %}
+              {% if called %}
+                <tr class="group-row"><td colspan="5">Called</td></tr>
+                {% for t in called %}{{ row(t) }}{% endfor %}
+              {% endif %}
+              {% if paying %}
+                <tr class="group-row"><td colspan="5">Ready to pay</td></tr>
+                {% for t in paying %}{{ row(t, t == next_ticket) }}{% endfor %}
+              {% endif %}
+              {% if browsing %}
+                <tr class="group-row"><td colspan="5">Browsing</td></tr>
+                {% for t in browsing %}{{ row(t, t == next_ticket, True) }}{% endfor %}
+              {% endif %}
+            {% else %}
+              <tr class="empty-row">
+                <td colspan="5">
+                  <svg class="empty-icon" viewBox="0 0 64 64" width="48" height="48" aria-hidden="true" focusable="false">
+                    <path d="M8 18h48v10a4 4 0 0 0 0 8v10H8V36a4 4 0 0 0 0-8z"
+                          fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+                    <path d="M40 18v28" stroke="currentColor" stroke-width="3" stroke-dasharray="3 4"/>
+                  </svg>
+                  {% if selected %}
+                    <p class="h5 fw-bold mb-1">No one waiting for {{ names[selected] }}</p>
+                    <p class="text-body-secondary mb-3">Other services may still have customers.</p>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('staff_dashboard') }}">Show all services</a>
+                  {% else %}
+                    <p class="h5 fw-bold mb-1">The queue is empty</p>
+                    <p class="text-body-secondary mb-0">New tickets appear here as soon as customers join.</p>
+                  {% endif %}
+                </td>
+              </tr>
             {% endif %}
           </tbody>
         </table>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <p class="h5 fw-bold mb-1">No one is waiting</p>
-        <p class="mb-0 text-body-secondary">New tickets will show up here as people join.</p>
       </div>
       {% endif %}
     </div>
   </div>
 
   {# ===== Phone: sticky Call next bar ===== #}
-  <div class="callbar d-md-none">
+  <div class="callbar d-md-none" data-live="callbar">
     <form method="post" action="{{ url_for('call_next') }}" class="d-grid">
       <input type="hidden" name="service_id" value="{{ selected or '' }}">
       <button type="submit" class="btn btn-primary btn-lg" {% if not next_ticket %}disabled{% endif %}>
@@ -156,4 +179,39 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const LIVE_MS = 5000;
+
+  function stamp() {
+    const t = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    document.querySelectorAll("[data-updated]").forEach(el => { el.textContent = "Updated " + t; });
+  }
+
+  async function refreshDashboard() {
+    if (document.hidden) return;
+
+    // Don't swap content out from under a button or link the person is using
+    const active = document.activeElement;
+    if (active && active.closest && active.closest("[data-live]")) return;
+
+    try {
+      const res = await fetch(window.location.href, { cache: "no-store" });
+      if (!res.ok) return;
+      const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+
+      document.querySelectorAll("[data-live]").forEach(old => {
+        const fresh = doc.querySelector(`[data-live="${old.dataset.live}"]`);
+        if (fresh && fresh.outerHTML !== old.outerHTML) old.replaceWith(fresh);
+      });
+      stamp();
+    } catch (err) {
+      console.warn("Could not refresh dashboard", err);
+    }
+  }
+
+  setInterval(refreshDashboard, LIVE_MS);
+</script>
 {% endblock %}

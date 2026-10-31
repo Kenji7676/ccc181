@@ -19,22 +19,10 @@ SERVICES = [
     {"id": 2, "name": "Claim pre-order"},
 ]
 
-SIZES = ["XS", "S", "M", "L", "XL", "2XL"]
+TICKETS = []
 
-TICKETS = [
-    {"number": 1, "name": "Francis Geronimo",
-     "email": "francis.geronimo@g.msuiit.edu.ph",
-     "service_id": 1, "status": "waiting",
-     "item": "Langkit T-shirt", "size": "M", "quantity": 2},
-    {"number": 2, "name": "Cris Pondoyo",
-     "email": "cris.pondoyo@g.msuiit.edu.ph",
-     "service_id": 2, "status": "waiting",
-     "item": "Langkit hoodie", "size": "L", "quantity": 1},
-    {"number": 2, "name": "Michael Adeva",
-     "email": "michael.adeva@g.msuiit.edu.ph",
-     "service_id": 1, "status": "called",
-     "item": "Langkit tote bag", "size": "N/A", "quantity": 1},
-]
+STAGES = {"browsing", "paying"}
+STUDENT_ID_RE = re.compile(r"^\d{4}-\d{4}$")
 
 def queue_key(t):
     """Paying customers go first; ties go to the lower ticket number."""
@@ -89,15 +77,19 @@ def leave(ticket_id):
         flash(f"You left the queue. Ticket A-{t['number']:03d} is no longer active.", "info")
     return redirect(url_for("index"))
 
+@app.get("/queue/<int:ticket_id>/status.json")
+def ticket_status(ticket_id):
+    t = find_ticket(ticket_id)
+    return {
+        "status": t["status"],
+        "stage": t.get("stage", "browsing"),
+        "ahead": people_ahead(t),
+    }
 
 @app.route("/hello")
 def hello():
     # The plain-string version from the Routes slide.
     return "Hello, CCC181!"
-
-STAGES = {"browsing", "paying"}
-STUDENT_ID_RE = re.compile(r"^\d{4}-\d{4}$")
-
 
 def queue_summary():
     waiting = [t for t in TICKETS if t["status"] == "waiting"]

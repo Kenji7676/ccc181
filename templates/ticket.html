@@ -86,3 +86,50 @@
 </div>
 {% endif %}
 {% endblock %}
+
+{% block scripts %}
+<script>
+  const statusUrl = "{{ url_for('ticket_status', ticket_id=ticket.number) }}";
+  const shown = {
+    status: {{ ticket.status|tojson }},
+    stage: {{ ticket.get('stage', 'browsing')|tojson }},
+    ahead: {{ ahead|tojson }}
+  };
+  let timer = null;
+
+  async function refreshStatus() {
+    try {
+      const res = await fetch(statusUrl, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.status === shown.status && data.stage === shown.stage && data.ahead === shown.ahead) {
+        return;
+      }
+
+      // Something changed: pull the freshly rendered card and buttons, and swap them in
+      const page = await fetch(window.location.href, { cache: "no-store" });
+      if (!page.ok) return;
+      const doc = new DOMParser().parseFromString(await page.text(), "text/html");
+      for (const sel of [".ticket-card", ".actions"]) {
+        const fresh = doc.querySelector(sel);
+        const old = document.querySelector(sel);
+        if (fresh && old) old.replaceWith(fresh);
+      }
+      Object.assign(shown, data);
+
+      if (data.status !== "waiting" && data.status !== "called") {
+        clearInterval(timer);
+        const panel = document.getElementById("leave-panel");
+        if (panel) panel.remove();
+      }
+    } catch (err) {
+      console.warn("Could not refresh status", err);
+    }
+  }
+
+  if (shown.status === "waiting" || shown.status === "called") {
+    timer = setInterval(refreshStatus, 10000);
+  }
+</script>
+{% endblock %}
