@@ -418,3 +418,14 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
+.home-staff {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--lk-gold);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus-visible {
+  color: var(--lk-gold);
+}

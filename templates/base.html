@@ -25,13 +25,13 @@
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
             <a class="nav-link {% if request.endpoint == 'join_form' %}active{% endif %}"
-               {% if request.endpoint == 'join_form' %}aria-current="page"{% endif %}
-               href="{{ url_for('join_form') }}">Join the queue</a>
+              {% if request.endpoint == 'join_form' %}aria-current="page"{% endif %}
+              href="{{ url_for('join_form') }}">Join the queue</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'staff_dashboard' %}active{% endif %}"
-               {% if request.endpoint == 'staff_dashboard' %}aria-current="page"{% endif %}
-               href="{{ url_for('staff_dashboard') }}">Staff</a>
+            <a class="nav-link nav-staff {% if request.endpoint == 'staff_dashboard' %}active{% endif %}"
+              {% if request.endpoint == 'staff_dashboard' %}aria-current="page"{% endif %}
+              href="{{ url_for('staff_dashboard') }}">Staff dashboard</a>
           </li>
         </ul>
       </div>
