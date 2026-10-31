@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Join the queue · Lang-Q-t{% endblock %}
+
+{% block content %}
+<div class="row g-4 g-md-5">
+
+  <div class="col-12 col-md-5">
+    <h1 class="h2 fw-bold mb-2">Join the queue</h1>
+    <p class="text-body-secondary mb-4">Get a place now. You can keep browsing while you wait.</p>
+
+    <section class="summary" aria-labelledby="summary-title">
+      <h2 id="summary-title" class="summary-label">Queue summary</h2>
+      <p class="summary-total">{{ summary.total }} waiting</p>
+      <dl class="summary-split d-none d-md-flex">
+        <div><dt>Paying</dt><dd>{{ summary.paying }}</dd></div>
+        <div><dt>Browsing</dt><dd>{{ summary.browsing }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <div class="col-12 col-md-7">
+    <form method="post" action="{{ url_for('join') }}" novalidate id="join-form">
+
+      <div class="mb-3">
+        <label for="name" class="form-label fw-semibold">Your name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required
+               placeholder="Enter full name"
+               class="form-control form-control-lg {% if errors and errors.name %}is-invalid{% endif %}"
+               value="{{ form.get('name', '') }}"
+               {% if errors and errors.name %}aria-describedby="name-error"{% endif %}>
+        {% if errors and errors.name %}
+          <div id="name-error" class="invalid-feedback">{{ errors.name }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="student_id" class="form-label fw-semibold">Student ID</label>
+        <input id="student_id" name="student_id" type="text" autocomplete="off" required
+              placeholder="2024-0001"
+              class="form-control form-control-lg {% if errors and errors.student_id %}is-invalid{% endif %}"
+              value="{{ form.get('student_id', '') }}"
+              aria-describedby="student_id-help{% if errors and errors.student_id %} student_id-error{% endif %}">
+        {% if errors and errors.student_id %}
+          <div id="student_id-error" class="invalid-feedback">{{ errors.student_id }}</div>
+        {% endif %}
+      </div>
+
+      <fieldset class="mb-4">
+        <legend class="form-label fs-6 fw-semibold">Still choosing items, or ready to pay?</legend>
+        <div class="row g-2">
+          <div class="col-12 col-md-6">
+            <div class="choice">
+              <input class="choice-input" type="radio" name="stage" id="stage-browsing"
+                     value="browsing" {% if form.get('stage', 'browsing') == 'browsing' %}checked{% endif %}>
+              <label class="choice-label" for="stage-browsing">
+                <span class="choice-title">Still browsing</span>
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="choice">
+              <input class="choice-input" type="radio" name="stage" id="stage-paying"
+                     value="paying" {% if form.get('stage') == 'paying' %}checked{% endif %}>
+              <label class="choice-label" for="stage-paying">
+                <span class="choice-title">Ready to pay</span>
+                <span class="choice-help">Paying customers are called first</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        {% if errors and errors.stage %}
+          <div class="text-danger small mt-2">{{ errors.stage }}</div>
+        {% endif %}
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        Join queue <span aria-hidden="true">→</span>
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

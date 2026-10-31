@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Home · YourApp{% endblock %}
+{% block title %}Home · Lang-Q-t{% endblock %}
 
 {% block content %}
-<div class="text-center py-5">
-  <h1 class="display-5 fw-bold">YourApp</h1>
-  <p class="lead mx-auto mb-4" style="max-width: 32rem;">
-    Lang-Q-t is a specialized queueing system designed for the Langkit Merch Shop.
+<section class="home mx-auto text-center py-4 py-md-5">
+  <hr class="home-rule">
+  <h1 class="home-title">Lang-Q-t</h1>
+  <hr class="home-rule">
+
+  <p class="home-lead">
+    A simple virtual queue for the Langkit Shop. Save your place, keep browsing, and know when it’s your turn.
   </p>
-  <a class="btn btn-primary btn-lg" href="{{ url_for('join_form') }}">Join the queue</a>
-</div>
+
+  <a class="btn btn-primary btn-lg w-100" href="{{ url_for('join_form') }}">
+    Join the queue <span aria-hidden="true">→</span>
+  </a>
+
+  <p class="home-note">No account needed · Keep your ticket open</p>
+</section>
 {% endblock %}

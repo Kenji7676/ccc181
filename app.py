@@ -5,6 +5,7 @@ Run it with:
 then open http://127.0.0.1:5000
 """
 from flask import Flask, render_template
+import re
 
 app = Flask(__name__)
 
@@ -16,7 +17,6 @@ app.secret_key = "dev-only-change-me"
 SERVICES = [
     {"id": 1, "name": "Buy merch"},
     {"id": 2, "name": "Claim pre-order"},
-    {"id": 3, "name": "Payment / inquiry"},
 ]
 
 SIZES = ["XS", "S", "M", "L", "XL", "2XL"]
@@ -30,7 +30,7 @@ TICKETS = [
      "email": "cris.pondoyo@g.msuiit.edu.ph",
      "service_id": 2, "status": "waiting",
      "item": "Langkit hoodie", "size": "L", "quantity": 1},
-    {"number": 3, "name": "Michael Adeva",
+    {"number": 2, "name": "Michael Adeva",
      "email": "michael.adeva@g.msuiit.edu.ph",
      "service_id": 1, "status": "called",
      "item": "Langkit tote bag", "size": "N/A", "quantity": 1},
@@ -55,9 +55,59 @@ def hello():
     # The plain-string version from the Routes slide.
     return "Hello, CCC181!"
 
-@app.route("/join")
+STAGES = {"browsing", "paying"}
+STUDENT_ID_RE = re.compile(r"^\d{4}-\d{4}$")
+
+
+def queue_summary():
+    waiting = [t for t in TICKETS if t["status"] == "waiting"]
+    return {
+        "total": len(waiting),
+        "paying": sum(1 for t in waiting if t.get("stage") == "paying"),
+        "browsing": sum(1 for t in waiting if t.get("stage") == "browsing"),
+    }
+
+
+@app.get("/join")
 def join_form():
-    return render_template("join.html")
+    return render_template("join.html", form={}, errors={}, summary=queue_summary())
+
+
+@app.post("/join")
+def join():
+    form = request.form
+    name = form.get("name", "").strip()
+    student_id = form.get("student_id", "").strip()
+    stage = form.get("stage", "")
+    errors = {}
+
+    if not name:
+        errors["name"] = "Enter your name"
+    elif len(name) > 80:
+        errors["name"] = "Name must be 80 characters or fewer."
+
+    if not STUDENT_ID_RE.match(student_id):
+        errors["student_id"] = "Invalid format: YYYY-NNNN"
+
+    if stage not in STAGES:
+        errors["stage"] = "Choose one option."
+
+    if errors:
+        flash("Please fix the highlighted fields.", "danger")
+        return render_template("join.html", form=form, errors=errors,
+                               summary=queue_summary()), 400
+
+    number = max((t["number"] for t in TICKETS), default=0) + 1
+    TICKETS.append({
+        "number": number,
+        "name": name,
+        "student_id": student_id,
+        "stage": stage,
+        "service_id": SERVICES[0]["id"],  # wireframe has no service picker, so use a default
+        "status": "waiting",
+    })
+    flash(f"You're in the queue! Your ticket number is #{number}.", "success")
+    return redirect(url_for("ticket", ticket_id=number))
 
 @app.route("/staff")
 def staff_dashboard():
