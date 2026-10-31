@@ -14,7 +14,7 @@
 {% macro row(t, next_up=False, muted=False) -%}
 {% set code = "A-%03d"|format(t.number) %}
 <tr class="{{ 'next-up' if next_up else '' }} {{ 'muted' if muted else '' }}">
-  <th scope="row">{{ code }}</th>
+  <th scope="row">{{ code }}{% if next_up %} <span class="next-tag">Next</span>{% endif %}</th>
   <td>{{ t.name }}</td>
   <td>{{ names[t.service_id] }}</td>
   <td>
@@ -96,7 +96,7 @@
           <h2 class="h4 fw-bold mb-0">Waiting customers</h2>
         </div>
         <p class="mb-0 text-md-end small">
-          <<strong class="text-uppercase" data-live="counts">{{ total }} total · {{ paying|length }} ready</strong>
+          <strong class="text-uppercase" data-live="counts">{{ total }} total · {{ paying|length }} ready</strong>
           <span class="d-none d-md-block" data-updated>Updated just now</span>
         </p>
       </div>
@@ -116,7 +116,6 @@
         </div>
       </form>
 
-      {% if called or paying or browsing %}
       <div class="table-responsive queue-box" data-live="table">
         <table class="table queue-table align-middle mb-0">
           <caption class="visually-hidden">Called and waiting tickets in queue order, customers ready to pay first</caption>
@@ -165,7 +164,6 @@
           </tbody>
         </table>
       </div>
-      {% endif %}
     </div>
   </div>
 
