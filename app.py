@@ -8,6 +8,11 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
+
+app = Flask(__name__)
+app.secret_key = "dev-only-change-me"
+
 SERVICES = [
     {"id": 1, "name": "Buy merch"},
     {"id": 2, "name": "Claim pre-order"},
@@ -50,6 +55,13 @@ def hello():
     # The plain-string version from the Routes slide.
     return "Hello, CCC181!"
 
+@app.route("/join")
+def join_form():
+    return render_template("join.html")
+
+@app.route("/staff")
+def staff_dashboard():
+    return "Staff dashboard coming soon"
 
 if __name__ == "__main__":
     # Lets you also start the app with: python app.py
