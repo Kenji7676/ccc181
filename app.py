@@ -149,10 +149,55 @@ def join():
     flash(f"You're in the queue! Your ticket number is #{number}.", "success")
     return redirect(url_for("ticket", ticket_id=number))
 
-@app.route("/staff")
+@app.get("/staff")
 def staff_dashboard():
-    return "Staff dashboard coming soon"
+    service_id = request.args.get("service_id", type=int)
 
-if __name__ == "__main__":
-    # Lets you also start the app with: python app.py
-    app.run(debug=True)
+    active = [t for t in TICKETS if t["status"] in ("waiting", "called")]
+    if service_id:
+        active = [t for t in active if t["service_id"] == service_id]
+    active.sort(key=queue_key)
+
+    called = [t for t in active if t["status"] == "called"]
+    waiting = [t for t in active if t["status"] == "waiting"]
+    paying = [t for t in waiting if t.get("stage") == "paying"]
+    browsing = [t for t in waiting if t.get("stage") != "paying"]
+
+    return render_template(
+        "staff.html",
+        services=SERVICES,
+        names={s["id"]: s["name"] for s in SERVICES},
+        selected=service_id,
+        called=called,
+        current=min(called, key=lambda t: t["number"]) if called else None,
+        paying=paying,
+        browsing=browsing,
+        next_ticket=waiting[0] if waiting else None,
+        total=len(waiting),
+    )
+
+
+@app.post("/staff/call-next")
+def call_next():
+    service_id = request.form.get("service_id", type=int)
+    waiting = [t for t in TICKETS if t["status"] == "waiting"
+               and (not service_id or t["service_id"] == service_id)]
+    if not waiting:
+        flash("No one is waiting.", "warning")
+    else:
+        nxt = min(waiting, key=queue_key)
+        nxt["status"] = "called"
+        flash(f"Called ticket A-{nxt['number']:03d} · {nxt['name']}.", "info")
+    return redirect(url_for("staff_dashboard", service_id=service_id))
+
+
+@app.post("/staff/tickets/<int:ticket_id>/<action>")
+def staff_action(ticket_id, action):
+    new_status = {"call": "called", "serve": "served", "no-show": "no-show"}.get(action)
+    if new_status is None:
+        abort(404)
+    t = find_ticket(ticket_id)
+    t["status"] = new_status
+    flash(f"Ticket A-{t['number']:03d} marked {new_status}.", "info")
+    return redirect(url_for("staff_dashboard",
+                            service_id=request.form.get("service_id", type=int)))

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Queue dashboard · Lang-Q-t{% endblock %}
+
+{% block content %}
+{# --- helpers --- #}
+{% macro act(t, action, label, cls, aria) -%}
+<form method="post" action="{{ url_for('staff_action', ticket_id=t.number, action=action) }}" class="d-inline">
+  <input type="hidden" name="service_id" value="{{ selected or '' }}">
+  <button type="submit" class="btn {{ cls }}" aria-label="{{ aria }}">{{ label }}</button>
+</form>
+{%- endmacro %}
+
+{% macro row(t, next_up=False, muted=False) -%}
+{% set code = "A-%03d"|format(t.number) %}
+<tr class="{{ 'next-up' if next_up else '' }} {{ 'muted' if muted else '' }}">
+  <th scope="row">{{ code }}</th>
+  <td>{{ t.name }}</td>
+  <td>{{ names[t.service_id] }}</td>
+  <td>
+    <span class="pill">
+      {% if t.status == 'called' %}Called{% elif t.stage == 'paying' %}Ready{% else %}Browsing{% endif %}
+    </span>
+  </td>
+  <td class="text-nowrap">
+    {% if t.status == 'waiting' %}
+      {{ act(t, 'call', 'Call', 'btn-sm btn-primary', 'Call ticket ' ~ code) }}
+    {% else %}
+      {{ act(t, 'serve', 'Serve', 'btn-sm btn-success', 'Mark ticket ' ~ code ~ ' as served') }}
+    {% endif %}
+    {{ act(t, 'no-show', 'No-show', 'btn-sm btn-outline-danger', 'Mark ticket ' ~ code ~ ' as no-show') }}
+  </td>
+</tr>
+{%- endmacro %}
+
+{% set next_code = "A-%03d"|format(next_ticket.number) if next_ticket else '' %}
+{% set current_code = "A-%03d"|format(current.number) if current else '' %}
+
+<div class="staff-wrap">
+  <h1 class="display-6 fw-bold mb-1">Queue dashboard</h1>
+  <p class="text-body-secondary mb-3 d-md-none">Updated just now</p>
+
+  <div class="row gx-md-4 gy-4 mt-1">
+
+    {# ===== Left: call next + current ticket ===== #}
+    <div class="col-12 col-md-5 col-lg-4">
+      <section class="dash-panel" aria-label="Current ticket">
+
+        <form method="post" action="{{ url_for('call_next') }}" class="d-none d-md-grid mb-3">
+          <input type="hidden" name="service_id" value="{{ selected or '' }}">
+          <button type="submit" class="btn btn-primary btn-lg" {% if not next_ticket %}disabled{% endif %}>
+            {% if next_ticket %}Call next: {{ next_code }}{% else %}No one waiting{% endif %}
+          </button>
+        </form>
+
+        <p class="dash-label">Current ticket</p>
+        {% if current %}
+          <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+            <p class="current-number">{{ current_code }}</p>
+            <div>
+              <p class="dash-label mb-0">Customer</p>
+              <p class="current-name">{{ current.name }}</p>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <form method="post" action="{{ url_for('staff_action', ticket_id=current.number, action='serve') }}" class="d-grid">
+              <input type="hidden" name="service_id" value="{{ selected or '' }}">
+              <button type="submit" class="btn btn-primary btn-lg"
+                      aria-label="Mark ticket {{ current_code }} as served">Mark served</button>
+            </form>
+            <form method="post" action="{{ url_for('staff_action', ticket_id=current.number, action='no-show') }}" class="d-grid">
+              <input type="hidden" name="service_id" value="{{ selected or '' }}">
+              <button type="submit" class="btn btn-outline-secondary btn-lg"
+                      aria-label="Mark ticket {{ current_code }} as no-show">No-show</button>
+            </form>
+          </div>
+        {% else %}
+          <p class="mb-0">No ticket called yet. Press <strong>Call next</strong> to start.</p>
+        {% endif %}
+      </section>
+    </div>
+
+    {# ===== Right: queue list ===== #}
+    <div class="col-12 col-md-7 col-lg-8">
+      <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-2">
+        <div>
+          <p class="dash-label mb-0">Queue list</p>
+          <h2 class="h4 fw-bold mb-0">Waiting customers</h2>
+        </div>
+        <p class="mb-0 text-md-end small">
+          <strong class="text-uppercase">{{ total }} total · {{ paying|length }} ready</strong>
+          <span class="d-none d-md-block">Updated just now</span>
+        </p>
+      </div>
+
+      <form method="get" action="{{ url_for('staff_dashboard') }}" class="row g-2 align-items-end mb-3">
+        <div class="col-8 col-sm-6 col-lg-5">
+          <label for="service_id" class="form-label small fw-semibold mb-1">Service</label>
+          <select id="service_id" name="service_id" class="form-select">
+            <option value="">All services</option>
+            {% for s in services %}
+              <option value="{{ s.id }}" {% if selected == s.id %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-4 col-sm-3">
+          <button type="submit" class="btn btn-outline-secondary w-100">Filter</button>
+        </div>
+      </form>
+
+      {% if called or paying or browsing %}
+      <div class="table-responsive queue-box">
+        <table class="table queue-table align-middle mb-0">
+          <caption class="visually-hidden">Called and waiting tickets in queue order, customers ready to pay first</caption>
+          <thead>
+            <tr>
+              <th scope="col">Ticket</th>
+              <th scope="col">Name</th>
+              <th scope="col">Service</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if called %}
+              <tr class="group-row"><td colspan="5">Called</td></tr>
+              {% for t in called %}{{ row(t) }}{% endfor %}
+            {% endif %}
+            {% if paying %}
+              <tr class="group-row"><td colspan="5">Ready to pay</td></tr>
+              {% for t in paying %}{{ row(t, t == next_ticket) }}{% endfor %}
+            {% endif %}
+            {% if browsing %}
+              <tr class="group-row"><td colspan="5">Browsing</td></tr>
+              {% for t in browsing %}{{ row(t, t == next_ticket, True) }}{% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p class="h5 fw-bold mb-1">No one is waiting</p>
+        <p class="mb-0 text-body-secondary">New tickets will show up here as people join.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ===== Phone: sticky Call next bar ===== #}
+  <div class="callbar d-md-none">
+    <form method="post" action="{{ url_for('call_next') }}" class="d-grid">
+      <input type="hidden" name="service_id" value="{{ selected or '' }}">
+      <button type="submit" class="btn btn-primary btn-lg" {% if not next_ticket %}disabled{% endif %}>
+        {% if next_ticket %}Call next: {{ next_code }} · {{ next_ticket.name }}{% else %}No one waiting{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

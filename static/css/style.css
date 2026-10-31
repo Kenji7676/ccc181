@@ -249,3 +249,101 @@ body {
   .actions .btn-ready { border-radius: 0.375rem; }
   .actions .btn-exit { margin-top: 0; }
   .actions form + .btn-exit { margin-top: 0.75rem;
+
+/* ===== Staff dashboard ===== */
+.dash-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5c4a4a;
+  margin: 0 0 0.25rem;
+}
+
+.staff-wrap { padding-bottom: 5.5rem; }
+
+.dash-panel {
+  background: #f3eee6;
+  border: 2px solid var(--lk-maroon);
+  border-radius: 0.375rem;
+  padding: 1.25rem;
+}
+.current-number {
+  font-size: clamp(2.5rem, 10vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--lk-maroon);
+  margin: 0;
+}
+.current-name { font-size: 1.25rem; font-weight: 800; margin: 0; }
+.panel-actions { display: flex; gap: 0.5rem; }
+.panel-actions > * { flex: 1 1 0; }
+
+.queue-box {
+  border: 2px solid var(--lk-maroon);
+  border-radius: 0.375rem;
+  background: #fff;
+}
+.queue-table thead th {
+  background: #efe8de;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5c4a4a;
+  border-bottom: 2px solid var(--lk-maroon);
+  white-space: nowrap;
+}
+.queue-table tbody th { font-weight: 800; white-space: nowrap; }
+.queue-table td, .queue-table th { padding: 0.75rem; }
+.queue-table .group-row td {
+  background: #f3eee6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5c4a4a;
+  padding: 0.4rem 0.75rem;
+}
+.queue-table tr.muted td,
+.queue-table tr.muted th { color: #6b5d5d; }
+.queue-table tr.muted th { font-weight: 600; }
+.queue-table tr.next-up > * { background-color: #fff6e0; }
+.queue-table tr.next-up > :first-child { box-shadow: inset 6px 0 0 var(--lk-maroon); }
+
+.pill {
+  display: inline-block;
+  min-width: 5.5rem;
+  text-align: center;
+  border: 2px solid var(--lk-maroon);
+  background: #fff;
+  color: var(--lk-maroon);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+}
+.muted .pill { border-color: #8a7b7b; color: #6b5d5d; }
+
+.empty-state {
+  border: 2px dashed var(--lk-maroon);
+  border-radius: 0.375rem;
+  background: #fff;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.callbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  background: var(--lk-cream);
+  border-top: 2px solid var(--lk-maroon);
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .staff-wrap { padding-bottom: 0; }
+}
