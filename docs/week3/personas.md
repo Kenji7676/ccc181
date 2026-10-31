@@ -53,7 +53,8 @@ Lola chooses to render her duty at the Langkit shop in the morning because she a
 
 | Task | Screen | Requirement ID |
 | --- | --- | --- |
-| View and call the next customer to pay | Staff dashboard | FR-03 |
+| See the queue | Staff dashboard | FR-04 |
+| View and call the next customer to pay | Staff dashboard | FR-05 |
  | |
 
 ### What this means for my interface
