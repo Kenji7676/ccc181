@@ -1,9 +1,88 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket_id }} · ClinicQ{% endblock %}
+{% block title %}My place · Lang-Q-t{% endblock %}
 
 {% block content %}
-  <h2>Ticket #{{ ticket_id }}</h2>
-  <p>This page was built from the URL <code>/queue/{{ ticket_id }}</code>.</p>
-  <p><a href="{{ url_for('index') }}">&larr; Back to the queue</a></p>
+{% set code = "A-%03d"|format(ticket.number) %}
+{% set stage = ticket.get('stage', 'browsing') %}
+{% set active = ticket.status in ['waiting', 'called'] %}
+{% set can_pay = ticket.status == 'waiting' and stage == 'browsing' %}
+
+<h1 class="h2 fw-bold mb-1">My place</h1>
+<p class="text-body-secondary mb-4">Keep this screen open. We will notify you when it is your turn.</p>
+
+<div class="row g-0 gx-md-4 align-items-start">
+
+  <div class="col-12 col-md-7">
+    <section class="ticket-card{% if can_pay %} has-ready{% endif %}" aria-label="Your ticket">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <p class="ticket-label">Ticket number</p>
+        <p class="status-box badge status-{{ ticket.status }} mb-0">
+          Status · <span id="status-badge">{{ ticket.status }}</span>{% if active %} · {{ stage }}{% endif %}
+        </p>
+      </div>
+
+      <p class="ticket-number">{{ code }}</p>
+      <p class="ticket-service">{{ service.name if service else '' }}</p>
+
+      <div id="live-status" aria-live="polite">
+        {% if ticket.status == 'waiting' %}
+          <div class="ticket-row">
+            <p class="ticket-label">Queue position</p>
+            <div class="pos-row">
+              <span class="pos-num">{{ ahead }}</span>
+              <span>ahead of you in your queue{% if stage == 'browsing' %} · paying customers may go first{% endif %}</span>
+            </div>
+          </div>
+          <p id="position" class="ticket-headline">
+            {% if ahead == 0 %}You’re next!{% else %}Not your turn yet · {{ ahead }} ahead of you in your queue{% endif %}
+          </p>
+        {% elif ticket.status == 'called' %}
+          <p id="position" class="ticket-headline">It’s your turn! Please go to the counter.</p>
+        {% elif ticket.status == 'served' %}
+          <p id="position" class="ticket-headline">You’ve been served. Thank you!</p>
+        {% else %}
+          <p id="position" class="ticket-headline">This ticket is no longer in the queue.</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+
+  <div class="col-12 col-md-5 actions">
+    {% if can_pay %}
+      <form method="post" action="{{ url_for('ready', ticket_id=ticket.number) }}" class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg btn-ready">
+          I’m ready to pay <span aria-hidden="true">→</span>
+        </button>
+      </form>
+    {% endif %}
+
+    {% if active %}
+      <button type="button" class="btn btn-outline-secondary btn-lg btn-exit"
+              data-bs-toggle="collapse" data-bs-target="#leave-panel"
+              aria-expanded="false" aria-controls="leave-panel">Exit queue</button>
+    {% else %}
+      <a class="btn btn-primary btn-lg btn-exit" href="{{ url_for('join_form') }}">Join again</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if active %}
+<div class="collapse" id="leave-panel">
+  <div class="pt-3 pt-md-4">
+    <section class="leave-panel" aria-labelledby="leave-title">
+      <h2 class="h5 fw-bold" id="leave-title">Leave the queue?</h2>
+      <p>You’ll lose {{ code }}.</p>
+      <div class="leave-actions">
+        <button type="button" class="btn btn-primary btn-lg"
+                data-bs-toggle="collapse" data-bs-target="#leave-panel"
+                aria-controls="leave-panel">Stay in queue</button>
+        <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}" class="d-grid">
+          <button type="submit" class="btn btn-outline-secondary btn-lg">Leave</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
