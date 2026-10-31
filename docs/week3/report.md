@@ -9,8 +9,8 @@
 | **Full name** | Kenneth Jerome C. Gloria |
 | **Student ID** | 2024-0006 |
 | **Section** | CS3B |
-| **Date** | October 25, 2026 |
-| **Pull request** | [https://github.com/<user>/<repo>/pull/<number>] |
+| **Date** | October 31, 2026 |
+| **Pull request** | https://github.com/Kenji7676/ccc181/pull/2 |
 
 ## Personas
 
@@ -104,6 +104,9 @@ Full notes: [docs/week3/usability-test.md](usability-test.md)
 - Store the Student ID as its own column and keep the format check on the server.
 - Keep the "ahead of you" and paying-first ordering as a database query, so My place and the dashboard both read from the same source and always agree.
 - Keep the status values (`waiting`, `called`, `served`, `no-show`) as a constrained column, so a typo cannot create an invalid state.
+- Show a friendly “Ticket not found” page instead of a bare 404, now that tickets will persist.
+- Reject a Student ID that already holds an active ticket, with a clear error on the Join form.
+- Show how long each customer has waited on the dashboard, using a timestamp column, to help with Lola’s rule about smooth service.
 
 ## AI Declaration
 
