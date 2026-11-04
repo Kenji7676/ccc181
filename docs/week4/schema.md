@@ -42,9 +42,16 @@
 | tickets | called_at | timestamptz | CHECK (called_at IS NULL OR called_at >= created_at) | Empty until staff call the ticket; cannot be before the person joined; drives the 3-minute limit (FR-11) |
 
 
+## Extra constraints (beyond columns)
+
+| Table | Constraint | Why |
+| --- | --- | --- |
+| tickets | UNIQUE INDEX on (user_id, service_id) WHERE status IN ('waiting', 'called') | A student can hold only one active ticket per service, so a double tap or a second tab cannot create a duplicate (FR-12) 
+
+
 ## Entity Relationship Diagram
 
-> ![ERD](erd.png)
+> ![ERD](erd.png) *Note:a partial unique index on tickets(user_id, service_id) allows only one active ticket per student per service.*
 
 
 ## Check if normal
