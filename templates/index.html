@@ -1,14 +1,29 @@
 {% extends "base.html" %}
 
-{% block content %}
-  <p>Hello, {{ name }}!</p>
+{% block title %}Home · Lang-Q-t{% endblock %}
 
-  <h2>Tickets in the queue</h2>
-  <ul class="tickets">
-    {% for t in tickets %}
-      <li><a href="{{ url_for('ticket', ticket_id=t) }}">#{{ t }}</a></li>
-    {% else %}
-      <li>The queue is empty.</li>
-    {% endfor %}
-  </ul>
+{% block content %}
+<section class="home mx-auto text-center py-4 py-md-5">
+  <hr class="home-rule">
+  <h1 class="home-title">Lang-Q-t</h1>
+  <hr class="home-rule">
+
+  <p class="home-lead">
+    A simple virtual queue for the Langkit Shop. Save your place, keep browsing, and know when it’s your turn.
+  </p>
+
+  <a class="btn btn-primary btn-lg w-100" href="{{ url_for('join_form') }}">
+    Join the queue <span aria-hidden="true">→</span>
+  </a>
+
+  <p class="home-note">No account needed · Keep your ticket open</p>
+
+  <div class="home-staff">
+    <p class="mb-2">Working at the shop?</p>
+    <a class="btn btn-outline-secondary btn-lg w-100" href="{{ url_for('staff_dashboard') }}">
+      Open the staff dashboard
+    </a>
+  </div>
+
+</section>
 {% endblock %}
