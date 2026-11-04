@@ -1,8 +1,8 @@
 # Lang-Q-t requirements
 
-**Setting:** Langkit University Shop, Monday to Saturday
-**People who wait:** Ben Enben in docs/week3/personas.md
-**People who serve:** Lola Amour in docs/week3/personas.md
+**Setting:** Langkit University Shop, Monday to Saturday<br>
+**People who wait:** MSU-IIT constituents buying Langkit merchandise (e.g. Ben Enben in docs/week3/personas.md)<br>
+**People who serve:** Staff operating the cashier at the shop (e.g. Lola Amour in docs/week3/personas.md)
 
 **Problem statement:** Ben needs a way to queue in line while still being able to browse for merchandise from the shop because he has very little extra time to compete with a very crowded Langkit shop customer base given his hectic class schedule.
 
