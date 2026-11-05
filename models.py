@@ -94,6 +94,9 @@ class Ticket(db.Model):
     # Set when staff call the ticket; starts the 3-minute limit
     called_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # Set when staff mark the ticket served; used for waiting-time reports
+    served_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     user: Mapped["User"] = relationship(back_populates="tickets")
     service: Mapped["Service"] = relationship(back_populates="tickets")
 
@@ -104,6 +107,10 @@ class Ticket(db.Model):
         CheckConstraint(
             "called_at IS NULL OR called_at >= created_at",
             name="ck_tickets_called_after_created",
+        ),
+        CheckConstraint(
+            "served_at IS NULL OR served_at >= created_at",
+            name="ck_tickets_served_after_created",
         ),
         # One active ticket per student per service (FR-12)
         Index(

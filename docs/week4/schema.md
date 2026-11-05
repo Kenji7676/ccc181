@@ -40,6 +40,7 @@
 | tickets | status | varchar(20) | NOT NULL DEFAULT 'waiting', CHECK (status IN ('waiting', 'called', 'served', 'no-show', 'left')) | Only these five states are allowed, and a new ticket starts as waiting |
 | tickets | created_at | timestamptz | NOT NULL DEFAULT now() | Time zone safe; set by the database; decides who is first in line |
 | tickets | called_at | timestamptz | CHECK (called_at IS NULL OR called_at >= created_at) | Empty until staff call the ticket; cannot be before the person joined; drives the 3-minute limit (FR-11) |
+| tickets | served_at | timestamptz | CHECK (served_at IS NULL OR served_at >= created_at) | Empty until staff mark the ticket served; cannot be before the person joined; used for waiting-time reports (FR-10) |
 
 
 ## Extra constraints (beyond columns)

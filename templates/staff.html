@@ -16,7 +16,7 @@
 <tr class="{{ 'next-up' if next_up else '' }} {{ 'muted' if muted else '' }}">
   <th scope="row">{{ code }}{% if next_up %} <span class="next-tag">Next</span>{% endif %}</th>
   <td>{{ t.user.name }}</td>
-  {{ t.service.name }}
+  <td>{{ t.service.name }}</td>
   <td>
     <span class="pill">
         {% if t.status == 'called' %}Called{% elif t.stage == 'paying' %}Ready{% elif t.stage == 'browsing' %}Browsing{% else %}Waiting{% endif %}
@@ -29,6 +29,12 @@
       {{ act(t, 'serve', 'Serve', 'btn-sm btn-success', 'Mark ticket ' ~ code ~ ' as served') }}
     {% endif %}
     {{ act(t, 'no-show', 'No-show', 'btn-sm btn-outline-danger', 'Mark ticket ' ~ code ~ ' as no-show') }}
+    <form method="post" action="{{ url_for('delete_ticket', ticket_id=t.id) }}" class="d-inline"
+          data-confirm="Delete ticket {{ code }}? This cannot be undone.">
+      <input type="hidden" name="service_id" value="{{ selected or '' }}">
+      <button type="submit" class="btn btn-sm btn-outline-secondary"
+              aria-label="Delete ticket {{ code }}">Delete</button>
+    </form>
   </td>
 </tr>
 {%- endmacro %}
@@ -37,7 +43,10 @@
 {% set current_code = current.code if current else '' %}
 
 <div class="staff-wrap">
-  <h1 class="display-6 fw-bold mb-1">Queue dashboard</h1>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <h1 class="display-6 fw-bold mb-0">Queue dashboard</h1>
+    <a class="btn btn-outline-secondary ms-auto" href="{{ url_for('services_list') }}">Manage services</a>
+  </div>
   <p class="text-body-secondary mb-3 d-md-none" data-updated>Updated just now</p>
 
   <div class="row gx-md-4 gy-4 mt-1">

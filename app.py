@@ -248,7 +248,6 @@ def staff_dashboard():
         total=len(waiting),
     )
 
-
 @app.post("/staff/call-next")
 def call_next():
     service_id = request.form.get("service_id", type=int)
@@ -272,13 +271,22 @@ def call_next():
         flash(f"Called ticket {nxt.code} · {nxt.user.name}.", "info")
     return redirect(url_for("staff_dashboard", service_id=service_id))
 
-
 # Which current statuses each action may start from
 ALLOWED_FROM = {
     "call": {"waiting"},
     "serve": {"called"},
     "no-show": {"waiting", "called"},
 }
+
+@app.post("/staff/tickets/<int:ticket_id>/delete")
+def delete_ticket(ticket_id):
+    t = find_ticket(ticket_id)
+    code = t.code
+    db.session.delete(t)  # hard delete: the row is gone for good
+    db.session.commit()
+    flash(f"Ticket {code} was deleted.", "warning")
+    return redirect(url_for("staff_dashboard",
+                            service_id=request.form.get("service_id", type=int)))
 
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
 def staff_action(ticket_id, action):
@@ -292,12 +300,69 @@ def staff_action(ticket_id, action):
         flash(f"Ticket {t.code} is already {t.status}.", "warning")
     else:
         t.status = new_status
+        if new_status == "served":
+            t.served_at = func.now()
         if new_status == "called":
             t.called_at = func.now()
         db.session.commit()
         flash(f"Ticket {t.code} marked {new_status}.", "info")
     return redirect(url_for("staff_dashboard",
                             service_id=request.form.get("service_id", type=int)))
+
+@app.get("/staff/services")
+def services_list():
+    return render_template("services.html", services=all_services())
+
+@app.post("/staff/services")
+def service_create():
+    name = request.form.get("name", "").strip()
+    uses_stage = request.form.get("uses_stage") == "on"
+    if not name or len(name) > 60:
+        flash("Enter a service name (up to 60 characters).", "danger")
+        return redirect(url_for("services_list"))
+    db.session.add(Service(name=name, uses_stage=uses_stage))
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” added.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>")
+def service_edit(service_id):
+    s = db.get_or_404(Service, service_id)
+    name = request.form.get("name", "").strip()
+    if not name or len(name) > 60:
+        flash("Enter a service name (up to 60 characters).", "danger")
+        return redirect(url_for("services_list"))
+    s.name = name
+    s.uses_stage = request.form.get("uses_stage") == "on"
+    s.is_active = request.form.get("is_active") == "on"  # unticked boxes are not sent
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” saved.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"A service named “{name}” already exists.", "danger")
+    return redirect(url_for("services_list"))
+
+@app.post("/staff/services/<int:service_id>/delete")
+def service_delete(service_id):
+    s = db.get_or_404(Service, service_id)
+    name = s.name  # read it before the row is gone
+    if s.tickets:
+        flash(f"“{name}” has tickets, so it cannot be deleted. Turn it off instead.", "danger")
+        return redirect(url_for("services_list"))
+    db.session.delete(s)
+    try:
+        db.session.commit()
+        flash(f"Service “{name}” deleted.", "warning")
+    except IntegrityError:
+        db.session.rollback()
+        flash(f"“{name}” is still in use, so it cannot be deleted.", "danger")
+    return redirect(url_for("services_list"))
+
 #database
 @app.cli.command("seed")
 def seed():
