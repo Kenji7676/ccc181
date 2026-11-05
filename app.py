@@ -1,4 +1,4 @@
-import os
+import os, re
 
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
@@ -17,16 +17,6 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
-from flask import Flask, render_template, abort
-import re
-
-app = Flask(__name__)
-
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
-
-app = Flask(__name__)
-app.secret_key = "dev-only-change-me"
 
 SERVICES = [
     {"id": 1, "name": "Buy merch", "uses_stage": True},
@@ -113,7 +103,6 @@ def queue_summary():
         "browsing": sum(1 for t in waiting if t.get("stage") == "browsing"),
     }
 
-
 def join_page(form, errors, code=200):
     picked = next((s for s in SERVICES if str(s["id"]) == form.get("service_id", "")), None)
     show_stage = bool(picked and picked.get("uses_stage"))
@@ -121,11 +110,9 @@ def join_page(form, errors, code=200):
                            summary=queue_summary(), services=SERVICES,
                            show_stage=show_stage), code
 
-
 @app.get("/join")
 def join_form():
     return join_page({}, {})
-
 
 @app.post("/join")
 def join():
@@ -222,3 +209,17 @@ def staff_action(ticket_id, action):
     flash(f"Ticket A-{t['number']:03d} marked {new_status}.", "info")
     return redirect(url_for("staff_dashboard",
                             service_id=request.form.get("service_id", type=int)))
+
+@app.cli.command("seed")
+def seed():
+    """Add the starting services if they are not there yet."""
+    starting = [
+        ("Buy merch", True),         # asks "still browsing or ready to pay?"
+        ("Claim pre-order", False),  # no browsing question
+    ]
+    for name, uses_stage in starting:
+        exists = db.session.scalar(db.select(Service).filter_by(name=name))
+        if exists is None:
+            db.session.add(Service(name=name, uses_stage=uses_stage))
+    db.session.commit()
+    print("Services are ready.")
