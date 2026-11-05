@@ -1,134 +1,74 @@
 # Lang-Q-t
 
-Starter Flask app for **CCC181 Week 2: Git, GitHub & Flask Foundations**.
-It shows the project structure, routes, templates and static files from the slides.
+Lang-Q-t is a virtual queue for the Langkit University Shop. Customers join the line for Buy merch or Claim pre-order and see their ticket, status and place in line on their phone, while the shop staff call, serve or mark customers as no-show from a dashboard. It replaces having to physically stand in line in a crowded shop, and it allows early-arriving customers to keep browsing without fear that the get pushed back to the bottom of the paying queue once they're finished. It was built for CCC181 with Flask, Jinja and Bootstrap 5. After Week 4, PostgreSQL has been integrated into the app to serve as a database.
+
+## What it does
+
+* **Join** (`/join`): a customer enters a name and a Student ID (format `0000-0000`) and chooses a service. For Buy merch, they also choose whether they are still browsing or ready to pay. The server checks every field and keeps what was typed when something is wrong. The page also shows how many people are waiting.
+* **My place** (`/queue/<id>`): shows the ticket code, service, status, how many people are ahead in the same queue, and a Leave button with a confirmation step. A browsing customer can press "I'm ready to pay" to move into the paying group. The page checks for updates every 10 seconds and changes without a reload.
+* **Staff dashboard** (`/staff`): shows the called and waiting tickets in queue order, grouped into Called, Ready to pay and Waiting. It has a Call next button, a service filter, and Call, Serve and No-show buttons on each row. It refreshes every 5 seconds.
+
+Customers who are ready to pay are always called before customers who are still browsing, whoever joined first. Claim pre-order customers are not asked about browsing and wait in order of arrival.
+
+Tickets use the code `A-<number>`, for example `A-007`. Each number is used once and never reused.
+
+The requirements for this app are in [docs/requirements.md](docs/requirements.md).
+
+## Run it
+
+You need Python 3.11 or newer.
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows (PowerShell: .venv\Scripts\Activate.ps1)
+source .venv/bin/activate       # macOS/Linux
+pip install -r requirements.txt
+flask --app app run --debug
+```
+
+Open http://127.0.0.1:5000. To try it on a phone, run `flask --app app run --debug --host 0.0.0.0` and visit your laptop's IP address on the same Wi-Fi.
+
+## Things to know
+
+* **The queue is cleared on every restart.** Tickets live in a Python list, so stopping the server or saving a file while `--debug` is on empties the queue. A database in Week 4 fixes this.
+* **The staff pages have no login yet.** Anyone who opens `/staff` can call, serve and mark tickets. Staff login is planned for a later week.
+* **The secret key is a development value.** It will move into an environment variable before the app is deployed.
+* **Live updates use polling.** My place asks the server for its status every 10 seconds, and the dashboard reloads its own content every 5 seconds. Neither page needs a manual refresh.
 
 ## Project structure
 
 ```
-my-app/
-├── app.py              # creates the app and defines routes
-├── requirements.txt    # packages to rebuild the environment
-├── .gitignore          # keeps .venv, caches and secrets out of Git
-├── .venv/              # your virtual environment (not committed)
-├── templates/          # Jinja2 HTML files for render_template()
-│   ├── base.html       # shared layout
-│   ├── index.html      # home page
-│   └── ticket.html     # page for /queue/<ticket_id>
-└── static/             # served at /static/...
-    ├── css/style.css
-    └── js/main.js
+app.py                  # routes, queue rules and validation
+requirements.txt        # packages to rebuild the environment
+.gitignore              # keeps .venv/ and __pycache__/ out of Git
+templates/
+    base.html           # shared layout, navigation and flash messages
+    index.html          # home page
+    join.html           # join form
+    ticket.html         # My place
+    staff.html          # staff dashboard
+static/
+    css/style.css       # Lang-Q-t design (Langkit maroon and gold)
+    js/main.js          # double-submit guard on the join form
+docs/
+    week1/              # proposal and requirements
+    week3/              # personas, wireframes, self-review, accessibility, usability test, report
 ```
 
 ## Routes
 
-| URL | View function | What you see |
-|---|---|---|
-| `/` | `index()` | "Hello, Ana!" and a list of tickets, rendered with `index.html` |
-| `/queue/<int:ticket_id>` | `ticket()` | A page for that ticket, e.g. `/queue/12` |
-| `/hello` | `hello()` | The plain text "Hello, CCC181!" |
+| URL | Method | What it does |
+| --- | --- | --- |
+| `/` | GET | Home page |
+| `/join` | GET, POST | Show the join form, create a ticket |
+| `/queue/<id>` | GET | My place for one ticket (404 if it does not exist) |
+| `/queue/<id>/status.json` | GET | Status, stage and people ahead, polled by My place |
+| `/queue/<id>/ready` | POST | Move a browsing customer into the paying group |
+| `/queue/<id>/leave` | POST | Leave the queue |
+| `/staff` | GET | Staff dashboard, optional `?service_id=` filter |
+| `/staff/call-next` | POST | Call the next waiting customer, ready-to-pay first |
+| `/staff/tickets/<id>/<action>` | POST | Call, serve or no-show one ticket |
 
-Try `/queue/abc`: the `int` converter only accepts numbers, so Flask returns 404.
+## Documents
 
-## 1. Set up the Python environment
-
-```bash
-# create (once per project)
-python -m venv .venv
-
-# activate (every new terminal)
-.venv\Scripts\activate          # Windows
-source .venv/bin/activate       # macOS/Linux
-
-# install the packages
-pip install -r requirements.txt
-```
-
-Your prompt shows `(.venv)` when the environment is active. Some systems use `python3` or `py` instead of `python`.
-If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or use Command Prompt.
-
-If you add more packages later, record them with:
-
-```bash
-pip freeze > requirements.txt
-```
-
-## 2. Run the app
-
-```bash
-flask --app app run --debug
-```
-
-Open http://127.0.0.1:5000. With `--debug`, the server reloads every time you save a file. Never use debug mode in production.
-
-## 3. Put it on GitHub
-
-### Once per computer
-
-```bash
-git config --global user.name "Your Name"
-git config --global user.email you@g.msuiit.edu.ph   # same email as your GitHub account
-git config --list
-```
-
-### Create the local repository and first commit
-
-```bash
-git init
-git branch -M main
-git status              # .venv should NOT appear, thanks to .gitignore
-git add .
-git commit -m "Add Flask starter app"
-```
-
-### Connect to GitHub and push
-
-1. On GitHub, create a new **empty** repository (no README, no .gitignore).
-2. Copy its URL, then:
-
-```bash
-git remote add origin <repo-url>
-git push -u origin main
-```
-
-GitHub does not accept your account password for Git over HTTPS. Sign in through Git Credential Manager or the GitHub CLI, or use a personal access token or SSH key.
-
-### Everyday loop
-
-```bash
-git pull origin main     # before you start working
-git status
-git add <file>
-git commit -m "Add join-queue form"
-git push origin main     # when you have commits to share
-```
-
-## 4. Lab: ship it through a pull request
-
-1. On GitHub, open an issue: **"Set up Flask starter app"**.
-2. Pull the latest `main`, then create a branch:
-   ```bash
-   git switch main
-   git pull origin main
-   git switch -c feature/flask-setup
-   ```
-3. Create `.venv`, install Flask, write `requirements.txt` and `.gitignore`.
-4. Build `app.py` with a home route and one dynamic route, rendered with `base.html` and `index.html`.
-5. Commit in small steps, then push the branch:
-   ```bash
-   git push -u origin feature/flask-setup
-   ```
-6. On GitHub, click **Compare & pull request** and write `Closes #N` in the description (N is your issue number). Merge it, then:
-   ```bash
-   git switch main
-   git pull origin main
-   ```
-
-**Early finishers:** add another static CSS rule linked with `url_for`, or a third route based on one Must feature from your project milestone.
-
-## Commit message tips
-
-- Short summary in the imperative: "Add...", "Fix..."
-- One logical change per commit
-- Commit early and often
-- Good: "Add join-queue form". Unhelpful: "update", "asdf", "final na talaga".
+* Week 3: the personas, wireframes, self-review, accessibility results, usability test and report are in `docs/week3/`. The report is `docs/week3/report.md`.

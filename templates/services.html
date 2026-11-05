@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Manage services · Lang-Q-t{% endblock %}
+
+{% block content %}
+<h1 class="display-6 fw-bold mb-1">Manage services</h1>
+<p class="text-body-secondary mb-4">Turn a service off to hide it from the Join page without losing its tickets.</p>
+
+<form method="post" action="{{ url_for('service_create') }}" class="dash-panel mb-4">
+  <h2 class="h5 fw-bold">Add a service</h2>
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-6">
+      <label for="new-name" class="form-label fw-semibold">Name</label>
+      <input id="new-name" name="name" type="text" maxlength="60" required class="form-control form-control-lg">
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="form-check">
+        <input id="new-stage" name="uses_stage" type="checkbox" class="form-check-input">
+        <label for="new-stage" class="form-check-label">Ask “still browsing or ready to pay?”</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-3 d-grid">
+      <button type="submit" class="btn btn-primary btn-lg">Add</button>
+    </div>
+  </div>
+</form>
+
+{% for s in services %}
+<section class="dash-panel mb-3" aria-label="{{ s.name }}">
+  <form method="post" action="{{ url_for('service_edit', service_id=s.id) }}" class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="name-{{ s.id }}" class="form-label fw-semibold">Name</label>
+      <input id="name-{{ s.id }}" name="name" type="text" maxlength="60" required
+             value="{{ s.name }}" class="form-control">
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="form-check">
+        <input id="stage-{{ s.id }}" name="uses_stage" type="checkbox" class="form-check-input"
+               {% if s.uses_stage %}checked{% endif %}>
+        <label for="stage-{{ s.id }}" class="form-check-label">Asks browsing / paying</label>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="form-check">
+        <input id="active-{{ s.id }}" name="is_active" type="checkbox" class="form-check-input"
+               {% if s.is_active %}checked{% endif %}>
+        <label for="active-{{ s.id }}" class="form-check-label">Active</label>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <p class="mb-0 small">Tickets: <strong>{{ s.tickets|length }}</strong></p>
+    </div>
+    <div class="col-6 col-md-2 d-grid">
+      <button type="submit" class="btn btn-outline-secondary">Save</button>
+    </div>
+  </form>
+
+  <form method="post" action="{{ url_for('service_delete', service_id=s.id) }}" class="mt-2"
+        data-confirm="Delete “{{ s.name }}”? This cannot be undone.">
+    <button type="submit" class="btn btn-sm btn-outline-danger"
+            aria-label="Delete {{ s.name }}" {% if s.tickets %}disabled{% endif %}>Delete</button>
+    {% if s.tickets %}<span class="small text-body-secondary ms-2">Has tickets, so turn it off instead.</span>{% endif %}
+  </form>
+</section>
+{% endfor %}
+{% endblock %}

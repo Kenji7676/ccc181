@@ -22,6 +22,7 @@ After just finishing his exam, Ben is rushing from COE to the Langkit Shop to bu
 | --- | --- | --- |
 | Join the queue for buying merch | Join | FR-01 |
 | Check if it is his turn to pay at the counter | My place | FR-02 |
+| Tell the system he is ready to pay | My place | FR-07 |
 | |
 
 ### What this means for my interface
@@ -54,8 +55,9 @@ Lola chooses to render her duty at the Langkit shop in the morning because she a
 | Task | Screen | Requirement ID |
 | --- | --- | --- |
 | See the queue | Staff dashboard | FR-04 |
-| View and call the next customer to pay | Staff dashboard | FR-05 |
- | |
+| Call the next person, with ready-to-pay customers first | Staff dashboard | FR-05, FR-06 |
+| Mark the current ticket as served or no-show | Staff dashboard | FR-05 |
+| |
 
 ### What this means for my interface
 

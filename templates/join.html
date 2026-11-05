@@ -23,7 +23,7 @@
 
       <div class="mb-3">
         <label for="name" class="form-label fw-semibold">Your name</label>
-        <input id="name" name="name" type="text" autocomplete="name" required
+        <input id="name" name="name" type="text" autocomplete="name" required maxlength="80"
                placeholder="Enter full name"
                class="form-control form-control-lg {% if errors and errors.name %}is-invalid{% endif %}"
                value="{{ form.get('name', '') }}"
@@ -36,6 +36,8 @@
       <div class="mb-3">
         <label for="student_id" class="form-label fw-semibold">Student ID</label>
         <input id="student_id" name="student_id" type="text" autocomplete="off" required
+              maxlength="9" 
+              pattern="[0-9]{4}-[0-9]{4}"
               placeholder="2024-0001"
               class="form-control form-control-lg {% if errors and errors.student_id %}is-invalid{% endif %}"
               value="{{ form.get('student_id', '') }}"
@@ -51,7 +53,7 @@
           {% for s in services %}
             <div class="col-12 col-md-6">
               <div class="choice">
-                <input class="choice-input" type="radio" name="service_id" id="service-{{ s.id }}"
+                <input class="choice-input" type="radio" name="service_id" id="service-{{ s.id }}" required
                       value="{{ s.id }}" data-stage="{{ 1 if s.uses_stage else 0 }}"
                       {% if form.get('service_id') == s.id|string %}checked{% endif %}>
                 <label class="choice-label" for="service-{{ s.id }}">

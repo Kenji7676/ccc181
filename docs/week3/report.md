@@ -113,7 +113,7 @@ Full notes: [docs/week3/usability-test.md](usability-test.md)
 Select one option:
 
 - [ ] No generative AI tools were used in preparing this submission.
-- [x] One generative AI tools were used. Details are provided below.
+- [x] One or more generative AI tools were used. Details are provided below.
 
 | Tool | Purpose and sections assisted |
 |---|---|
