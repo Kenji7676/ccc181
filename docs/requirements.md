@@ -16,11 +16,13 @@
 | FR-03 | A customer can exit the queue before being served, after which the ticket no longer appears on the staff list. | Must | **Yes** | Built (Week 3) |
 | FR-04 | A staff member can see the called and waiting tickets in queue order and filter them by service. | Must | No | Built (Week 3) |
 | FR-05 | A staff member can call the next person and mark them as served or no-show, and the customer's My place page shows the new status within 10 seconds. | Must | **Yes** | Built (Week 3) |
-| FR-06 ★ | A customers who is ready to pay are called before customers who are still browsing, regardless of who joined first. | Must | No | Built (Week 3) |
+| FR-06 ★ | A customer who is ready to pay is called before customers who are still browsing, regardless of who joined first. | Must | No | Built (Week 3) |
 | FR-07 ★ | A customer who is still browsing at Buy merch can tell the system they are ready to pay, and moves into the paying group. | Must | **Yes** | Built (Week 3) |
 | FR-08 ★ | A student can join only with a Student ID in the format 0000-0000; any other ID is refused with a message showing the correct format. | Must | **Yes** | Built (Week 3) |
-| FR-09 | A staff member can add, rename and switch off a service. | Should | **Yes** | This week |
-| FR-10 | A customer can switch to either Light or Dark mode | Could | **Yes** | Later |
+| FR-09 | A staff member can add, rename and switch off a service. | Should | **Yes** | Built (Week 4) |
+| FR-10 | A customer can switch to either Light or Dark mode. | Could | No | Later |
+| FR-11 | A customer whose ticket has been called has 3 minutes to reach the counter, sees a countdown and a warning when 1 minute is left, and the ticket is marked no-show automatically if the time runs out. | Should | **Yes** | Later |
+| FR-12 ★ | A student can hold only one active ticket per service at a time; joining again while one is waiting or called is refused with a message showing their existing ticket. | Should | **Yes** | Built (Week 4) |
 
 **MVP:** FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08<br>
 **Out of scope:** FR-09 (since the Langkit University Shop doesn't offer other services aside from the two listed as of the moment), FR-10 (the feature is simply a Quality of Life improvement so it isn't that needed)
