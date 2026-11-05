@@ -4,8 +4,9 @@ import re
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_, or_, case
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from models import Service, Ticket, User, db
 
@@ -19,6 +20,8 @@ app.config["SQLALCHEMY_ECHO"] = os.environ.get("SQLALCHEMY_ECHO") == "1"
 db.init_app(app)
 migrate = Migrate(app, db)
 
+from datetime import timedelta, timezone
+
 STAGES = {"browsing", "paying"}
 STUDENT_ID_RE = re.compile(r"^\d{4}-\d{4}$")
 
@@ -28,6 +31,13 @@ def active_services():
         db.select(Service).where(Service.is_active).order_by(Service.name)
     ).all()
 
+def all_services():
+    """Every service, including switched-off ones (for the staff screens)."""
+    return db.session.scalars(db.select(Service).order_by(Service.name)).all()
+
+def queue_order():
+    """Call order: paying customers first, then whoever joined earliest."""
+    return (case((Ticket.stage == "paying", 0), else_=1), Ticket.created_at, Ticket.id)
 
 def queue_summary():
     """Counts for the Join page, computed from the tickets table."""
@@ -208,42 +218,67 @@ def ticket_status(ticket_id):
 @app.get("/staff")
 def staff_dashboard():
     service_id = request.args.get("service_id", type=int)
-
-    active = [t for t in TICKETS if t["status"] in ("waiting", "called")]
+    stmt = (
+        db.select(Ticket)
+        .where(Ticket.status.in_(("waiting", "called")))
+        .options(selectinload(Ticket.user), selectinload(Ticket.service))
+        .order_by(*queue_order())
+    )
     if service_id:
-        active = [t for t in active if t["service_id"] == service_id]
-    active.sort(key=queue_key)
+        stmt = stmt.where(Ticket.service_id == service_id)
+    active = db.session.scalars(stmt).all()
 
-    called = [t for t in active if t["status"] == "called"]
-    waiting = [t for t in active if t["status"] == "waiting"]
-    paying = [t for t in waiting if t.get("stage") == "paying"]
-    browsing = [t for t in waiting if t.get("stage") != "paying"]
+    called = sorted((t for t in active if t.status == "called"),
+                    key=lambda t: (t.called_at or t.created_at, t.id))
+    waiting = [t for t in active if t.status == "waiting"]
+    paying = [t for t in waiting if t.stage == "paying"]
+    browsing = [t for t in waiting if t.stage != "paying"]
 
+    services = all_services()
     return render_template(
         "staff.html",
-        services=SERVICES,
-        names={s["id"]: s["name"] for s in SERVICES},
+        services=services,
+        names={s.id: s.name for s in services},
         selected=service_id,
         called=called,
-        current=min(called, key=lambda t: t["number"]) if called else None,
+        current=called[0] if called else None,
         paying=paying,
         browsing=browsing,
         next_ticket=waiting[0] if waiting else None,
         total=len(waiting),
     )
 
+
 @app.post("/staff/call-next")
 def call_next():
     service_id = request.form.get("service_id", type=int)
-    waiting = [t for t in TICKETS if t["status"] == "waiting"
-               and (not service_id or t["service_id"] == service_id)]
-    if not waiting:
+    stmt = (
+        db.select(Ticket)
+        .where(Ticket.status == "waiting")
+        .order_by(*queue_order())
+        .limit(1)
+        .with_for_update(skip_locked=True)  # two staff pressing at once call different tickets
+    )
+    if service_id:
+        stmt = stmt.where(Ticket.service_id == service_id)
+    nxt = db.session.scalar(stmt)
+
+    if nxt is None:
         flash("No one is waiting.", "warning")
     else:
-        nxt = min(waiting, key=queue_key)
-        nxt["status"] = "called"
-        flash(f"Called ticket A-{nxt['number']:03d} · {nxt['name']}.", "info")
+        nxt.status = "called"
+        nxt.called_at = func.now()
+        db.session.commit()
+        flash(f"Called ticket {nxt.code} · {nxt.user.name}.", "info")
     return redirect(url_for("staff_dashboard", service_id=service_id))
+
+
+# Which current statuses each action may start from
+ALLOWED_FROM = {
+    "call": {"waiting"},
+    "serve": {"called"},
+    "no-show": {"waiting", "called"},
+}
 
 @app.post("/staff/tickets/<int:ticket_id>/<action>")
 def staff_action(ticket_id, action):
@@ -251,11 +286,19 @@ def staff_action(ticket_id, action):
     if new_status is None:
         abort(404)
     t = find_ticket(ticket_id)
-    t["status"] = new_status
-    flash(f"Ticket A-{t['number']:03d} marked {new_status}.", "info")
+
+    if t.status not in ALLOWED_FROM[action]:
+        # a stale page or a double click: do not overwrite what already happened
+        flash(f"Ticket {t.code} is already {t.status}.", "warning")
+    else:
+        t.status = new_status
+        if new_status == "called":
+            t.called_at = func.now()
+        db.session.commit()
+        flash(f"Ticket {t.code} marked {new_status}.", "info")
     return redirect(url_for("staff_dashboard",
                             service_id=request.form.get("service_id", type=int)))
-
+#database
 @app.cli.command("seed")
 def seed():
     """Add the starting services if they are not there yet."""
@@ -269,3 +312,12 @@ def seed():
             db.session.add(Service(name=name, uses_stage=uses_stage))
     db.session.commit()
     print("Services are ready.")
+
+#time
+PH_TIME = timezone(timedelta(hours=8))  # Philippine time has no daylight saving
+
+
+@app.template_filter("local")
+def local_time(value):
+    """Show a database time in Philippine time, e.g. Nov 05, 08:01 AM."""
+    return value.astimezone(PH_TIME).strftime("%b %d, %I:%M %p") if value else ""

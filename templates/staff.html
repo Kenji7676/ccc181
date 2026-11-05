@@ -5,18 +5,18 @@
 {% block content %}
 {# --- helpers --- #}
 {% macro act(t, action, label, cls, aria) -%}
-<form method="post" action="{{ url_for('staff_action', ticket_id=t.number, action=action) }}" class="d-inline">
+<form method="post" action="{{ url_for('staff_action', ticket_id=t.id, action=action) }}" class="d-inline">
   <input type="hidden" name="service_id" value="{{ selected or '' }}">
   <button type="submit" class="btn {{ cls }}" aria-label="{{ aria }}">{{ label }}</button>
 </form>
 {%- endmacro %}
 
 {% macro row(t, next_up=False, muted=False) -%}
-{% set code = "A-%03d"|format(t.number) %}
+{% set code = t.code %}
 <tr class="{{ 'next-up' if next_up else '' }} {{ 'muted' if muted else '' }}">
   <th scope="row">{{ code }}{% if next_up %} <span class="next-tag">Next</span>{% endif %}</th>
-  <td>{{ t.name }}</td>
-  <td>{{ names[t.service_id] }}</td>
+  <td>{{ t.user.name }}</td>
+  {{ t.service.name }}
   <td>
     <span class="pill">
         {% if t.status == 'called' %}Called{% elif t.stage == 'paying' %}Ready{% elif t.stage == 'browsing' %}Browsing{% else %}Waiting{% endif %}
@@ -33,8 +33,8 @@
 </tr>
 {%- endmacro %}
 
-{% set next_code = "A-%03d"|format(next_ticket.number) if next_ticket else '' %}
-{% set current_code = "A-%03d"|format(current.number) if current else '' %}
+{% set next_code = next_ticket.code if next_ticket else '' %}
+{% set current_code = current.code if current else '' %}
 
 <div class="staff-wrap">
   <h1 class="display-6 fw-bold mb-1">Queue dashboard</h1>
@@ -59,16 +59,16 @@
             <p class="current-number">{{ current_code }}</p>
             <div>
               <p class="dash-label mb-0">Customer</p>
-              <p class="current-name">{{ current.name }}</p>
+              <p class="current-name">{{ current.user.name }}</p>
             </div>
           </div>
           <div class="panel-actions">
-            <form method="post" action="{{ url_for('staff_action', ticket_id=current.number, action='serve') }}" class="d-grid">
+            <form method="post" action="{{ url_for('staff_action', ticket_id=current.id, action='serve') }}" class="d-grid">
               <input type="hidden" name="service_id" value="{{ selected or '' }}">
               <button type="submit" class="btn btn-primary btn-lg"
                       aria-label="Mark ticket {{ current_code }} as served">Mark served</button>
             </form>
-            <form method="post" action="{{ url_for('staff_action', ticket_id=current.number, action='no-show') }}" class="d-grid">
+            <form method="post" action="{{ url_for('staff_action', ticket_id=current.id, action='no-show') }}" class="d-grid">
               <input type="hidden" name="service_id" value="{{ selected or '' }}">
               <button type="submit" class="btn btn-outline-secondary btn-lg"
                       aria-label="Mark ticket {{ current_code }} as no-show">No-show</button>
@@ -172,7 +172,7 @@
     <form method="post" action="{{ url_for('call_next') }}" class="d-grid">
       <input type="hidden" name="service_id" value="{{ selected or '' }}">
       <button type="submit" class="btn btn-primary btn-lg" {% if not next_ticket %}disabled{% endif %}>
-        {% if next_ticket %}Call next: {{ next_code }} · {{ next_ticket.name }}{% else %}No one waiting{% endif %}
+        {% if next_ticket %}Call next: {{ next_code }} · {{ next_ticket.user.name }}{% else %}No one waiting{% endif %}
       </button>
     </form>
   </div>

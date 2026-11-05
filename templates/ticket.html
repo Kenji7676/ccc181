@@ -3,8 +3,8 @@
 {% block title %}My place · Lang-Q-t{% endblock %}
 
 {% block content %}
-{% set code = "A-%03d"|format(ticket.number) %}
-{% set stage = ticket.get('stage', 'browsing') %}
+{% set code = ticket.code %}
+{% set stage = ticket.stage %}
 {% set active = ticket.status in ['waiting', 'called'] %}
 {% set can_pay = ticket.status == 'waiting' and stage == 'browsing' %}
 
@@ -23,7 +23,7 @@
       </div>
 
       <p class="ticket-number">{{ code }}</p>
-      <p class="ticket-service">{{ service.name if service else '' }}</p>
+      <p class="ticket-service">{{ service.name }} · Joined {{ ticket.created_at|local }}</p>
 
       <div id="live-status" aria-live="polite">
         {% if ticket.status == 'waiting' %}
@@ -50,7 +50,7 @@
 
   <div class="col-12 col-md-5 actions">
     {% if can_pay %}
-      <form method="post" action="{{ url_for('ready', ticket_id=ticket.number) }}" class="d-grid">
+      <form method="post" action="{{ url_for('ready', ticket_id=ticket.id) }}" class="d-grid">
         <button type="submit" class="btn btn-primary btn-lg btn-ready">
           I’m ready to pay <span aria-hidden="true">→</span>
         </button>
@@ -77,7 +77,7 @@
         <button type="button" class="btn btn-primary btn-lg"
                 data-bs-toggle="collapse" data-bs-target="#leave-panel"
                 aria-controls="leave-panel">Stay in queue</button>
-        <form method="post" action="{{ url_for('leave', ticket_id=ticket.number) }}" class="d-grid">
+        <form method="post" action="{{ url_for('leave', ticket_id=ticket.id) }}" class="d-grid">
           <button type="submit" class="btn btn-outline-secondary btn-lg">Leave</button>
         </form>
       </div>
@@ -87,7 +87,7 @@
 {% endif %}
 
 <div id="ticket-data" hidden
-     data-status-url="{{ url_for('ticket_status', ticket_id=ticket.number) }}"
+     data-status-url="{{ url_for('ticket_status', ticket_id=ticket.id) }}"
      data-status="{{ ticket.status }}"
      data-stage="{{ stage or '' }}"
      data-ahead="{{ ahead }}"></div>
