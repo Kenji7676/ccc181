@@ -25,7 +25,7 @@
 | FR-12 ★ | A student can hold only one active ticket per service at a time; joining again while one is waiting or called is refused with a message showing their existing ticket. | Should | **Yes** | Built (Week 4) |
 
 **MVP:** FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08<br>
-**Out of scope:** FR-09 (since the Langkit University Shop doesn't offer other services aside from the two listed as of the moment), FR-10 (the feature is simply a Quality of Life improvement so it isn't that needed)
+**Out of scope:** FR-10 (the feature is simply a Quality of Life improvement so it isn't that needed), FR-11 (I am still considering whether to add this since it is a niche feature) 
 
 
 # Non-functional requirements
@@ -35,8 +35,8 @@
 | NFR-01 | No ticket is lost when the server or the database restarts. | Reliability | Must |
 | NFR-02 | Two people can never get the same ticket, even if they join at the same moment. | Data integrity | Must |
 | NFR-03 | My place loads in under 2 seconds on mobile data. | Performance | Should |
-| NFR-04 | Every screen scores 90 or higher in the Lighthouse accessibility check. | Accessibility | Must |
-| NFR-05 | Body text is at least 16 px and the ticket number on My place is at least 48 px, so a person with poor eyesight can read the screen without zooming (small labels excepted). | Usability | Must |
+| NFR-04 | Every screen scores 90 or higher in the Lighthouse accessibility check. | Accessibility | Should |
+| NFR-05 | Body text is at least 16 px and the ticket number on My place is at least 48 px, so a person with poor eyesight can read the screen without zooming (small labels excepted). | Usability | Should |
 | NFR-06 | The staff dashboard still loads in under 2 seconds with 200 active tickets in the queue. | Scalability | Should |
 | NFR-07 | Every screen works at 375 px wide with no sideways page scrolling, in current Chrome, Edge and Firefox. | Compatibility | Must |
 | NFR-08 | A customer's name and Student ID are never shown on another customer's screen; My place shows only the customer's own ticket. | Privacy | Must |
@@ -44,7 +44,7 @@
 | NRF-10 | The app handles thousands of simultaneous users without slowing down or failing. | Scalability | Could |
 | NRF-11 | The app keeps working offline, or can be installed as a phone app. | Availability | Could |
 
-**MVP:** NFR-01, NFR-02, NRF-04, NFR-05, NFR-07, NFR-08<br>
+**MVP:** NFR-01, NFR-02, NFR-07, NFR-08<br>
 **Out of scope:** NRF-10 (during operating hours, the chances of customers nearing a thousand is extremely low), NRF-11 (the app relies on live data for real-time updates so an offline mode or a native app version would affect compatibility)
 
 
